@@ -1,4 +1,5 @@
 # TIBCO  JasperReports&reg; Server for Docker
+## Modified to work with the Community Edition
 
 # Table of contents
 
@@ -76,31 +77,26 @@ higher
 - (*recommended*) [docker-compose](https://docs.docker.com/compose/install)
 version 1.12 or higher
 - [git](https://git-scm.com/downloads)
-- (*optional*) TIBCO  Jaspersoft&reg; commercial license.
-- Contact your sales
-representative for information about licensing. If you do not specify a
-TIBCO Jaspersoft license, the evaluation license is used.
 - (*optional*) Preconfigured PostgreSQL 9.4 database. If you do not
 currently have a PostgreSQL instance, you can create a PostgreSQL container
 at build time.
 
 ## Downloading JasperReports Server WAR
 
-Download the JasperReports Server commercial zip archive from the Support
-Portal and copy it to the `resources` directory of your archive. For example,
+Download the JasperReports Server Community Edition zip archive from the [Jaspersoft Community Portal](http://community.jaspersoft.com/project/jasperreports-server/releases) and copy it to the `resources` directory of your archive. For example,
 if you have downloaded the archive to your ~/Downloads directory:
 
 ```console
-$ cp ~/Downloads/jasperreports-server-6.3.0-bin.zip resources/
+$ cp ~/Downloads/jasperreports-server-cp-6.3.0-bin.zip resources/
 ```
 
 ## Cloning the repository
 
 Clone the JasperReports Server Docker github repository at 
-[https://github.com/TIBCOSoftware/js-docker](#https://github.com/TIBCOSoftware/js-docker):
+[https://github.com/bbustin/js-docker](#https://github.com/TIBCOSoftware/js-docker):
 
 ```console
-$ git clone https://github.com/TIBCOSoftware/js-docker
+$ git clone https://github.com/bbustin/js-docker
 $ cd js-docker
 ```
 
@@ -179,15 +175,15 @@ To build and run a JasperReports Server container with a pre-existing
 PostgreSQL 9.4 instance, execute these commands in your repository:
 
 ```console
-$ docker build -t jasperserver-pro:6.3.0 .
+$ docker build -t jasperserver:6.3.0 .
 $ docker run --name some-jasperserver -p 8080:8080 \
 -e DB_HOST=some-external-postgres -e DB_USER=username \
--e DB_PASSWORD=password -d jasperserver-pro:6.3.0
+-e DB_PASSWORD=password -d jasperserver:6.3.0
 ```
 
 Where:
 
-- `jasperserver-pro:6.3.0` is the image name and version tag
+- `jasperserver:6.3.0` is the image name and version tag
 for your build. This image will be used to create containers.
 - `some-jasperserver` is the name of the new JasperReports Server container.
 - `some-external-postgres` is the hostname, fully qualified domain name
@@ -203,10 +199,10 @@ you can use linking:
 ```console
 $ docker run --name some-postgres -e POSTGRES_USER=username \
 -e POSTGRES_PASSWORD=password -d postgres:9.4
-$ docker build -t jasperserver-pro:6.3.0 .
+$ docker build -t jasperserver:6.3.0 .
 $ docker run --name some-jasperserver --link some-postgres:postgres \
 -p 8080:8080 -e DB_HOST=some-postgres -e DB_USER=db_username \
--e DB_PASSWORD=db_password -d jasperserver-pro:6.3.0
+-e DB_PASSWORD=db_password -d jasperserver:6.3.0
 ```
 
 Where:
@@ -216,7 +212,7 @@ Where:
 new PostgreSQL container and JasperReports Server container.
 - `postgres:9.4` [PostgreSQL 9.4](https://hub.docker.com/_/postgres/) is
 the PostgreSQL image from Docker Hub.
-- `jasperserver-pro:6.3.0` is the image name and version tag
+- `jasperserver:6.3.0` is the image name and version tag
 for your build. This image will be used to create containers.
 - `some-jasperserver` is the name of the new JasperReports Server container.
 -  `db_username` and `db_password` are the user credentials for accessing
@@ -267,30 +263,30 @@ local path. For example, to access a license on a local directory on Mac:
 
 ```console
 docker run --name new-jrs
--v /<path>/resources/license:/usr/local/share/jasperreports-pro/license 
+-v /<path>/resources/license:/usr/local/share/jasperreports/license 
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres -e 
-DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+DB_PASSWORD=postgres -d jasperserver:6.3.0
 ```
 
 ## Web application
 
 By default, the JasperReports Server Docker container stores the web
-application data in `/usr/local/tomcat/webapps/jasperserver-pro`. To create a
+application data in `/usr/local/tomcat/webapps/jasperserver`. To create a
 locally-accessible named volume, run the following commands at container
 generation time:
 ```console
 $ docker volume create --name some-jasperserver-data
 $ docker run --name some-jasperserver \
--v some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-pro \
-jasperserver-pro:6.3.0
+-v some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver \
+jasperserver:6.3.0
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres -e \
-DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+DB_PASSWORD=postgres -d jasperserver:6.3.0
 ```
 Where:
 
 - `some-jasperserver-data` is the name of the new data volume.
 - `some-jasperserver` is the name of the new JasperReports Server container.
-- `jasperserver-pro:6.3.0`  is the image name and version tag
+- `jasperserver:6.3.0`  is the image name and version tag
 for your build. This image will be used to create containers.
 - Database settings should be modified for your setup.
 
@@ -302,68 +298,13 @@ If you want to define the local volume path manually, you cannot use named
 volumes. Instead, modify `docker run` like this:
 ```console
 $ docker run --name some-jasperserver -v \
-/some-path/some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-pro \
-jasperserver-pro:6.3.0
+/some-path/some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver \
+jasperserver:6.3.0
 ```
 Where:
 - `/some-path/some-jasperserver-data` is a local path that will be mounted.
 
-## License
-
-By default, the JasperReports Server Docker container expects to find the
-license in the
-`/usr/local/share/jasperreports-pro/license` directory on your system.
-If a license file
-is not present at this location, then the 30-day evaluation license is used.
-
-On Linux systems, you can add a license volume and store your commercial
-license there, for example:
-
-```console
-$ docker volume create --name some-jasperserver-license
-$ sudo cp jasperserver.license \
-/var/lib/docker/volumes/some-jasperserver-license/_data
-$ docker run --name some-jasperserver \
--v some-jasperserver-license:/usr/local/share/jasperreports-pro/license \
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
-
-```
-Where:
-
-- `some-jasperserver-license` is the name of the new data volume.
-- `/var/lib/docker/volumes/some-jasperserver-license/_data` is an example path.
-It may differ on your system, use `docker volume inspect` to get
-local path to volume.
-- `some-jasperserver` is the name of the new JasperReports Server container
-- `jasperserver-pro:6.3.0`  is the image name and version tag
-for your build. This image will be used to create containers.
-- Database settings should be modified for your setup.
-
 See `Dockerfile` and `scripts/entrypoint.sh` for details.
-
-On Windows and Macintosh, you can mount a directory 
-with the license resource. 
-See the Docker documentation for more information. 
-See also 
-[Paths to data volumes on Mac and Windows](#paths-to-data-volumes-on-mac-and-windows).
-For additional information about paths on Mac, see
- [`docker volume inspect` returns incorrect paths on MacOS X](#-docker-volume-inspect-returns-incorrect-paths-on-macos-x).
-
-
-To update your license without data volumes on an existing container:
-
-```console
-$ docker cp jasperserver.license \
-some-jasperserver:/usr/local/share/jasperreports-pro/license/
-$ docker restart some-jasperserver
-```
-Where:
-
-- `some-jasperserver` is the name of the new JasperReports Server container.
-
-Note that you need to stop the JasperReports Server container
-prior to license update and restart it after.
 
 # Logging
 
@@ -389,15 +330,15 @@ for log storage:
 ```console
 $ docker volume create --name some-jasperserver-log
 $ docker run --name some-jasperserver -v \
-some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver-pro/WEB-INF/logs \
+some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver/WEB-INF/logs \
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-e DB_PASSWORD=postgres -d jasperserver:6.3.0
 ```
 Where:
 
 - `some-jasperserver-log` is the name of the new data volume for log storage.
 - `some-jasperserver` is the name of the new JasperReports Server container
-- `jasperserver-pro:6.3.0`  is the image name and version tag.
+- `jasperserver:6.3.0`  is the image name and version tag.
 for your build. This image will be used to create containers.
 - Database settings should be modified for your setup.
 
@@ -406,7 +347,7 @@ logged via the driver or application. In the case of the JasperReports
 Server container, the main log is output by Tomcat to the docker-engine
 via the logging driver, and the application log specific to
 JasperReports Server is output to
-`some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver-pro/WEB-INF/logs`
+`some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver/WEB-INF/logs`
 
 # Updating Tomcat
 
@@ -429,10 +370,10 @@ the default web application:
 ```console
 $ docker stop some-jasperserver
 $ docker run --name some-jasperserver-2 -v \
-some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-pro \
--d jasperserver-pro:6.3.0
+some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver \
+-d jasperserver:6.3.0
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-e DB_PASSWORD=postgres -d jasperserver:6.3.0
 ```
 Where:
 
@@ -440,16 +381,16 @@ Where:
 container.
 - `some-jasperserver-2` is the name of the new JasperReports Server container.
 - `some-jasperserver-data` is the name of a data volume.
-- `jasperserver-pro:6.3.0` is an image name and version tag that is used
+- `jasperserver:6.3.0` is an image name and version tag that is used
 as a base for the new container.
 - Database settings should be modified for your setup.
 
 # Customizing JasperReports Server at runtime
 
 Customizations can be added to JasperReports Server container at runtime
-via the `/usr/local/share/jasperreports-pro/customization` directory in the
+via the `/usr/local/share/jasperreports/customization` directory in the
 container. All zip files in this directory are applied to
-`/usr/local/tomcat/webapps/jasperserver-pro` in sorted order (natural sort).
+`/usr/local/tomcat/webapps/jasperserver` in sorted order (natural sort).
 
 ## Applying customizations
 
@@ -460,9 +401,9 @@ $ sudo cp custom.zip \
 /var/lib/docker/volumes/some-jasperserver-customization/_data
 $ docker run --name some-jasperserver -v \
 some-jasperserver-customization:\
-/usr/local/share/jasperreports-pro/customization \
+/usr/local/share/jasperreports/customization \
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-e DB_PASSWORD=postgres -d jasperserver:6.3.0
 ```
 Where:
 
@@ -470,13 +411,13 @@ Where:
 data volume.
 - `custom.zip` is an archive containing customizations, for example:
 `WEB-INF/log4j.properties`. The archive will be unpacked as-is to the path
-`/usr/local/tomcat/webapps/jasperserver-pro`
+`/usr/local/tomcat/webapps/jasperserver`
 - `/var/lib/docker/volumes/some-jasperserver-customization/_data` is an
 example path. Use `docker volume inspect`
 to get the local path to the volume for your system.
 - `some-jasperserver` is the name of the JasperReports Server
 container.
-- `jasperserver-pro:6.3.0` is an image name and version tag that is used
+- `jasperserver:6.3.0` is an image name and version tag that is used
 as a base for the new container.
 - Database settings should be modified for your setup.
 
@@ -505,7 +446,7 @@ or by modifying files in the [web application](#web-application) data volume.
 For example:
 ```console
 $ docker cp log4j.properties some-jasperserver:\
-/usr/local/tomcat/webapps/jasperserver-pro/WEB-INF/
+/usr/local/tomcat/webapps/jasperserver/WEB-INF/
 $ docker restart some-jasperserver
 ```
 Where:
@@ -530,7 +471,7 @@ browser's address field.
 The URL depends upon your installation. The default configuration uses:
 
 ```
-http://localhost:8080/jasperserver-pro
+http://localhost:8080/jasperserver
 ```
 
 Where:
