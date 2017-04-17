@@ -8,10 +8,10 @@ FROM tomcat:8.0-jre8
 # Build will fail if file not present.
 # COPY resources/jasperreports-server*zip /tmp/jasperserver.zip
 
-# Download jasperreports CE
-ADD https://downloads.sourceforge.net/project/jasperserver/JasperServer/JasperReports%20Server%20Community%20Edition%206.3.0/jasperreports-server-cp-6.3.0-bin.zip /tmp/jasperserver.zip
-
-RUN apt-get update && apt-get install -y postgresql-client unzip xmlstarlet && \
+# Download JasperServer CE, extract, and install dependencies
+RUN  \
+    wget https://downloads.sourceforge.net/project/jasperserver/JasperServer/JasperReports%20Server%20Community%20Edition%206.3.0/jasperreports-server-cp-6.3.0-bin.zip -O /tmp/jasperserver.zip && \
+    apt-get update && apt-get install -y postgresql-client unzip xmlstarlet && \
     rm -rf /var/lib/apt/lists/* && \
     unzip /tmp/jasperserver.zip -d /usr/src/ && \
     mv /usr/src/jasperreports-server-* /usr/src/jasperreports-server && \
