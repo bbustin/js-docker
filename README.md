@@ -1,9 +1,8 @@
 # TIBCO  JasperReports&reg; Server for Docker
-## Modified to work with the Community Edition
-These are just modifications to [TIBCOSoftware/js-docker](https://github.com/TIBCOSoftware/js-docker) to
-make it possible to run the Community Edition using Docker.
+### Modified to work with the Community Edition
 
-I made every attempt to minimize changes to keep this as close to the original as possible.
+Modified version of[TIBCOSoftware/js-docker](https://github.com/TIBCOSoftware/js-docker) for
+running the Community Edition in Docker.
 
 # Table of contents
 
