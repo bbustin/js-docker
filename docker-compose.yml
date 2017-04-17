@@ -17,7 +17,7 @@ services:
     # to build instead of using image
     # - comment image line
     # - uncomment build line
-    image: bbustin/js-server
+    image: bbustin/js-docker
     #build: .
 
     # expose port 8080 and bind it to 8080 on host
