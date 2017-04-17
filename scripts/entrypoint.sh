@@ -7,7 +7,7 @@
 
 # This script sets up and runs JasperReports Server on container start.
 # Default "run" command, set in Dockerfile, executes run_jasperserver.
-# If webapps/jasperserver-pro does not exist, run_jasperserver 
+# If webapps/jasperserver does not exist, run_jasperserver 
 # redeploys webapp. If "jasperserver" database does not exist,
 # run_jasperserver redeploys minimal database.
 # Additional "init" only calls init_database, which will try to recreate 
@@ -43,47 +43,46 @@ _EOL_
   # executed in buildomatic directory.
   cd /usr/src/jasperreports-server/buildomatic/
   for i in $@; do
-    # Default deploy-webapp-pro attempts to remove
-    # $CATALINA_HOME/webapps/jasperserver-pro path.
+    # Default deploy-webapp-ce attempts to remove
+    # $CATALINA_HOME/webapps/jasperserver path.
     # This behaviour does not work if mounted volumes are used.
     # Uses unzip to populate webapp directory and non-destructive
     # targets for configuration
-    if [ $i == "deploy-webapp-pro" ]; then
-      mkdir -p $CATALINA_HOME/webapps/jasperserver-pro ;
-      unzip -o -q ../jasperserver-pro.war \
-        -d $CATALINA_HOME/webapps/jasperserver-pro
+    if [ $i == "deploy-webapp-ce" ]; then
+      mkdir -p $CATALINA_HOME/webapps/jasperserver ;
+      unzip -o -q ../jasperserver.war \
+        -d $CATALINA_HOME/webapps/jasperserver
       ./js-ant \
         init-source-paths \
-        set-pro-webapp-name \
+        set-ce-webapp-name \
         deploy-webapp-datasource-configs \
         deploy-jdbc-jar \
-        -DwarTargetDir=$CATALINA_HOME/webapps/jasperserver-pro
+        -DwarTargetDir=$CATALINA_HOME/webapps/jasperserver
     else
-      # warTargetDir and webaAppName are set as
+      # warTargetDir and webAppName are set as
       # workaround for database configuration regeneration.
       ./js-ant $i \
-        -DwarTargetDir=$CATALINA_HOME/webapps/jasperserver-pro \
-        -DwebAppName=jasperserver-pro
+        -DwarTargetDir=$CATALINA_HOME/webapps/jasperserver \
+        -DwebAppName=jasperserver
     fi
   done
 }
 
 run_jasperserver() {
-  # If jasperserver-pro webapp is not present or if only WEB-INF/logs present
-  # in tomcat webapps directory do deploy-webapp-pro.
+  # If jasperserver webapp is not present or if only WEB-INF/logs present
+  # in tomcat webapps directory do deploy-webapp-ce.
   # Starts upon webapp deployment as database may still be initializing.
-  # This speeds up overall startup because deploy-webapp-pro does
+  # This speeds up overall startup because deploy-webapp-ce does
   # not depend on database.
-  if [[ -d "$CATALINA_HOME/webapps/jasperserver-pro" ]]; then
-    if [[ `ls -1 $CATALINA_HOME/webapps/jasperserver-pro| wc -l` -le 1 \
-      || `ls -1 -v $CATALINA_HOME/webapps/jasperserver-pro| head -n 1` \
+  if [[ -d "$CATALINA_HOME/webapps/jasperserver" ]]; then
+    if [[ `ls -1 $CATALINA_HOME/webapps/jasperserver| wc -l` -le 1 \
+      || `ls -1 -v $CATALINA_HOME/webapps/jasperserver| head -n 1` \
       =~ "WEB-INF.*" ]]; then
-        setup_jasperserver deploy-webapp-pro
+        setup_jasperserver deploy-webapp-ce
     fi
   else
-    setup_jasperserver deploy-webapp-pro
+    setup_jasperserver deploy-webapp-ce
   fi
-
     
   # Wait for PostgreSQL.
   retry_postgresql
@@ -98,16 +97,16 @@ run_jasperserver() {
   # Set up jasperserver database if it is not present.
   if [[ `test_postgresql -l | grep -i ${DB_NAME:-jasperserver} | wc -l` < 1 \
     ]]; then
-    setup_jasperserver set-pro-webapp-name \
+    setup_jasperserver set-ce-webapp-name \
       create-js-db \
-      init-js-db-pro \
-      import-minimal-pro
+      init-js-db-ce \
+      import-minimal-ce
   fi
 
   # Run deploy-jdbc-jar in the case that the tomcat container has been updated.
   setup_jasperserver deploy-jdbc-jar
 
-  config_license
+  # config_license
 
   # Set up phantomjs.
   config_phantomjs
@@ -127,7 +126,7 @@ init_database() {
   # Wait for PostgreSQL.
   retry_postgresql
   # Run-only db creation targets.
-  setup_jasperserver create-js-db init-js-db-pro import-minimal-pro
+  setup_jasperserver create-js-db init-js-db-ce import-minimal-ce
 }
 
 # Initial license handling.
@@ -136,12 +135,12 @@ config_license() {
   # Non-default location (~/ or /root) used to allow
   # for storing license in a volume. To update license,
   # replace license file and restart container
-  JRS_LICENSE=${JRS_LICENSE:-/usr/local/share/jasperreports-pro/license}
+  JRS_LICENSE=${JRS_LICENSE:-/usr/local/share/jasperreports/license}
   if [[ ! -f \
     "${JRS_LICENSE}/jasperserver.license"\
     ]]; then
     cp /usr/src/jasperreports-server/jasperserver.license \
-      /usr/local/share/jasperreports-pro/license
+      /usr/local/share/jasperreports/license
   fi
 }
 
@@ -168,7 +167,7 @@ config_phantomjs() {
     PATH_PHANTOM='\/usr\/local\/bin\/phantomjs'
     PATTERN1='com.jaspersoft.jasperreports'
     PATTERN2='phantomjs.executable.path'
-    cd $CATALINA_HOME/webapps/jasperserver-pro/WEB-INF
+    cd $CATALINA_HOME/webapps/jasperserver/WEB-INF
     sed -i -r "s/(.*)($PATTERN1.highcharts.$PATTERN2=)(.*)/\2$PATH_PHANTOM/" \
       classes/jasperreports.properties
     sed -i -r "s/(.*)($PATTERN1.fusion.$PATTERN2=)(.*)/\2$PATH_PHANTOM/" \
@@ -187,7 +186,7 @@ config_ssl() {
   # If $JRS_HTTPS_ONLY is set in environment to "true", disable HTTP support
   # in JasperReports Server.
   if [[ $JRS_HTTPS_ONLY ]]; then
-    cd $CATALINA_HOME/webapps/jasperserver-pro/WEB-INF
+    cd $CATALINA_HOME/webapps/jasperserver/WEB-INF
     xmlstarlet ed --inplace \
       -N x="http://java.sun.com/xml/ns/j2ee" -u \
       "//x:security-constraint/x:user-data-constraint/x:transport-guarantee"\
@@ -200,18 +199,18 @@ config_ssl() {
 
 config_customization() {
   # Unpack zips (if they exist) from the path
-  # /usr/local/share/jasperreports-pro/customization
+  # /usr/local/share/jasperreports/customization
   # to the JasperReports Server web application path
-  # $CATALINA_HOME/webapps/jasperserver-pro/
+  # $CATALINA_HOME/webapps/jasperserver/
   # File sorted with natural sort.
   JRS_CUSTOMIZATION=\
-${JRS_CUSTOMIZATION:-/usr/local/share/jasperreports-pro/customization}
+${JRS_CUSTOMIZATION:-/usr/local/share/jasperreports/customization}
   JRS_CUSTOMIZATION_FILES=`find $JRS_CUSTOMIZATION -iname "*zip" \
     -exec readlink -f {} \; | sort -V`
   for customization in $JRS_CUSTOMIZATION_FILES; do
     if [[ -f "$customization" ]]; then
       unzip -o -q "$customization" \
-        -d $CATALINA_HOME/webapps/jasperserver-pro/
+        -d $CATALINA_HOME/webapps/jasperserver/
     fi
   done
 }
