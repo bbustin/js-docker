@@ -157,6 +157,10 @@ JasperReports Server web application and license, with pre-setup network and
 mapped ports. There is also a pre-configured `.env` file for use with
 docker-compose.
 
+The docker-compose.yml for the Community Edition pulls the Docker image directly from
+Docker hub. To change this behavior back and build it yourself, please read the comments
+in `docker-compose.yml`
+
 To build and run using `docker-compose.yml`, execute the following commands in
 the root directory of your repository:
 

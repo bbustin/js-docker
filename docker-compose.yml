@@ -14,7 +14,12 @@ networks:
 
 services:
   jasperserver:
-    build: .
+    # to build instead of using image
+    # - comment image line
+    # - uncomment build line
+    image: bbustin/js-server
+    #build: .
+
     # expose port 8080 and bind it to 8080 on host
     ports:
       - "8080:8080"
