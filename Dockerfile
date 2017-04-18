@@ -70,8 +70,6 @@ ENV CATALINA_OPTS="${JAVA_OPTIONS:--Xmx2g -XX:+UseParNewGC \
 #        -v "/root/.keystore" \
 #    ${CATALINA_HOME}/conf/server.xml
 
-RUN mkdir /usr/local/share/jasperreports && mkdir /usr/local/share/jasperreports/customization
-
 # Allow adding customizations without having to create a derivative Dockerfile
 COPY ./customization/*.zip /usr/local/share/jasperreports/customization/
 
