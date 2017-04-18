@@ -126,9 +126,6 @@ for more information:
 - `DB_HOST` - database host
 - `DB_PORT` - database port
 - `DB_NAME` - JasperReports Server database name
-- `JRS_DBCONFIG_REGEN` - When true, forces database configuration regeneration
-on container run. This variable can be used to point an already existing
-JasperReports Server container to a new PostgreSQL server.
 - `JRS_HTTPS_ONLY` - When true, enables HTTPS-only mode.
 HTTPS-only requires modifications to the
 `Dockerfile`; see [SSL configuration](ssl-configuration)
@@ -270,13 +267,13 @@ DB_PASSWORD=postgres -d jasperserver-ce:6.3.0
 ## Web application
 
 By default, the JasperReports Server Docker container stores the web
-application data in `/usr/local/tomcat/webapps/jasperserver-ce`. To create a
+application data in `/usr/local/tomcat/webapps/jasperserver`. To create a
 locally-accessible named volume, run the following commands at container
 generation time:
 ```console
 $ docker volume create --name some-jasperserver-data
 $ docker run --name some-jasperserver \
--v some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-ce \
+-v some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver \
 jasperserver-ce:6.3.0
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres -e \
 DB_PASSWORD=postgres -d jasperserver-ce:6.3.0
@@ -297,7 +294,7 @@ If you want to define the local volume path manually, you cannot use named
 volumes. Instead, modify `docker run` like this:
 ```console
 $ docker run --name some-jasperserver -v \
-/some-path/some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-ce \
+/some-path/some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver \
 jasperserver-ce:6.3.0
 ```
 Where:
@@ -329,7 +326,7 @@ for log storage:
 ```console
 $ docker volume create --name some-jasperserver-log
 $ docker run --name some-jasperserver -v \
-some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver-ce/WEB-INF/logs \
+some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver/WEB-INF/logs \
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
 -e DB_PASSWORD=postgres -d jasperserver-ce:6.3.0
 ```
@@ -346,7 +343,7 @@ logged via the driver or application. In the case of the JasperReports
 Server container, the main log is output by Tomcat to the docker-engine
 via the logging driver, and the application log specific to
 JasperReports Server is output to
-`some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver-ce/WEB-INF/logs`
+`some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver/WEB-INF/logs`
 
 # Updating Tomcat
 
@@ -369,7 +366,7 @@ the default web application:
 ```console
 $ docker stop some-jasperserver
 $ docker run --name some-jasperserver-2 -v \
-some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-ce \
+some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver \
 -d jasperserver-ce:6.3.0
 -p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
 -e DB_PASSWORD=postgres -d jasperserver-ce:6.3.0
@@ -389,7 +386,7 @@ as a base for the new container.
 Customizations can be added to JasperReports Server container at runtime
 via the `/usr/local/share/jasperreports/customization` directory in the
 container. All zip files in this directory are applied to
-`/usr/local/tomcat/webapps/jasperserver-ce` in sorted order (natural sort).
+`/usr/local/tomcat/webapps/jasperserver` in sorted order (natural sort).
 
 ## Applying customizations
 
@@ -410,7 +407,7 @@ Where:
 data volume.
 - `custom.zip` is an archive containing customizations, for example:
 `WEB-INF/log4j.properties`. The archive will be unpacked as-is to the path
-`/usr/local/tomcat/webapps/jasperserver-ce`
+`/usr/local/tomcat/webapps/jasperserver`
 - `/var/lib/docker/volumes/some-jasperserver-customization/_data` is an
 example path. Use `docker volume inspect`
 to get the local path to the volume for your system.
@@ -445,7 +442,7 @@ or by modifying files in the [web application](#web-application) data volume.
 For example:
 ```console
 $ docker cp log4j.properties some-jasperserver-ce:\
-/usr/local/tomcat/webapps/jasperserver-ce/WEB-INF/
+/usr/local/tomcat/webapps/jasperserver/WEB-INF/
 $ docker restart some-jasperserver
 ```
 Where:

@@ -4,14 +4,17 @@
 # version: 6.3.0-v1.0.4
 FROM tomcat:8.0-jre8
 
-# Download JasperServer CE, extract, and install dependencies
+COPY scripts/entrypoint.sh /
+
+# Download JasperServer CE, extract, install dependencies, and deploy webapp
 RUN  \
     wget https://downloads.sourceforge.net/project/jasperserver/JasperServer/JasperReports%20Server%20Community%20Edition%206.3.0/jasperreports-server-cp-6.3.0-bin.zip -O /tmp/jasperserver.zip && \
     apt-get update && apt-get install -y postgresql-client unzip xmlstarlet && \
     rm -rf /var/lib/apt/lists/* && \
     unzip /tmp/jasperserver.zip -d /usr/src/ && \
     mv /usr/src/jasperreports-server-* /usr/src/jasperreports-server && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* && \
+   /entrypoint.sh deploy-webapp-ce
 
 # Extract phantomjs, move to /usr/local/share/phantomjs, link to /usr/local/bin.
 # Comment out if phantomjs not required.
@@ -36,8 +39,7 @@ phantomjs-2.1.1-linux-x86_64.tar.bz2" \
 
 # Set default environment options.
 ENV CATALINA_OPTS="${JAVA_OPTIONS:--Xmx2g -XX:+UseParNewGC \
-    -XX:+UseConcMarkSweepGC} \
-    -Djs.license.directory=${JRS_LICENSE:-/usr/local/share/jasperreports-pro/license}"
+    -XX:+UseConcMarkSweepGC} "
 
 # Configure tomcat for SSL (optional). Uncomment ENV and RUN to enable generation of
 # self-signed certificate and to set up JasperReports Server to use HTTPS only.
@@ -72,11 +74,6 @@ ENV CATALINA_OPTS="${JAVA_OPTIONS:--Xmx2g -XX:+UseParNewGC \
 # map them to local ports at container runtime via "-p 8080:8080 -p 8443:8443"
 # or use dynamic ports.
 EXPOSE ${HTTP_PORT:-8080} ${HTTPS_PORT:-8443}
-
-COPY scripts/entrypoint.sh /
-
-# run setup now - starts up faster and allows modification of WEB-INF in child Dockerfiles
-RUN /entrypoint.sh setup
 
 ENTRYPOINT ["/entrypoint.sh"]
 

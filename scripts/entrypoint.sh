@@ -17,26 +17,7 @@
 set -e
 
 setup_jasperserver() {
-  # If environment is not set, uses default values for postgres
-  DB_USER=${DB_USER:-postgres}
-  DB_PASSWORD=${DB_PASSWORD:-postgres}
-  DB_HOST=${DB_HOST:-postgres}
-  DB_PORT=${DB_PORT:-5432}
-  DB_NAME=${DB_NAME:-jasperserver}
-
-  # Simple default_master.properties. Modify according to
-  # JasperReports Server documentation.
-  cat >/usr/src/jasperreports-server/buildomatic/default_master.properties\
-<<-_EOL_
-appServerType=tomcat8
-appServerDir=$CATALINA_HOME
-dbType=postgresql
-dbHost=$DB_HOST
-dbUsername=$DB_USER
-dbPassword=$DB_PASSWORD
-dbPort=$DB_PORT
-js.dbName=$DB_NAME
-_EOL_
+  create_default_master_properties
 
   # Execute js-ant targets for installing/configuring
   # JasperReports Server. Note that js-ant should be
@@ -68,6 +49,30 @@ _EOL_
   done
 }
 
+create_default_master_properties() {
+  # If environment is not set, uses default values for postgres
+  DB_USER=${DB_USER:-postgres}
+  DB_PASSWORD=${DB_PASSWORD:-postgres}
+  DB_HOST=${DB_HOST:-postgres}
+  DB_PORT=${DB_PORT:-5432}
+  DB_NAME=${DB_NAME:-jasperserver}
+
+  # Simple default_master.properties. Modify according to
+  # JasperReports Server documentation.
+  cat >/usr/src/jasperreports-server/buildomatic/default_master.properties\
+<<-_EOL_
+appServerType=tomcat8
+appServerDir=$CATALINA_HOME
+dbType=postgresql
+dbHost=$DB_HOST
+dbUsername=$DB_USER
+dbPassword=$DB_PASSWORD
+dbPort=$DB_PORT
+js.dbName=$DB_NAME
+_EOL_
+cat /usr/src/jasperreports-server/buildomatic/default_master.properties
+}
+
 run_jasperserver() {
   # If jasperserver webapp is not present or if only WEB-INF/logs present
   # in tomcat webapps directory do deploy-webapp-ce.
@@ -83,16 +88,12 @@ run_jasperserver() {
   else
     setup_jasperserver deploy-webapp-ce
   fi
+
+  create_default_master_properties
+  setup_jasperserver deploy-webapp-datasource-configs
     
   # Wait for PostgreSQL.
   retry_postgresql
-
-  # Force regeneration of database configuration if variable is set.
-  # This supports changes to DB configuration for already created
-  # container.
-  if [[ ${JRS_DBCONFIG_REGEN} ]]; then
-    setup_jasperserver deploy-webapp-datasource-configs deploy-jdbc-jar
-  fi
  
   # Set up jasperserver database if it is not present.
   if [[ `test_postgresql -l | grep -i ${DB_NAME:-jasperserver} | wc -l` < 1 \
@@ -105,8 +106,6 @@ run_jasperserver() {
 
   # Run deploy-jdbc-jar in the case that the tomcat container has been updated.
   setup_jasperserver deploy-jdbc-jar
-
-  # config_license
 
   # Set up phantomjs.
   config_phantomjs
@@ -223,7 +222,7 @@ case "$1" in
   init)
     init_database
     ;;
-  setup)
+  deploy-webapp-ce)
     setup_jasperserver deploy-webapp-ce
     ;;
   *)

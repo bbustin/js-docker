@@ -33,7 +33,6 @@ services:
     environment:
       - DB_HOST=js_database
     volumes:
-      - jrs_webapp:/usr/local/tomcat/webapps/jasperserver
       - jrs_customization:/usr/local/share/jasperreports/customization
       # for Mac OS you may want to define local path for volume mounts. 
       # Note that defining path for a named volume is not supported 
@@ -46,7 +45,4 @@ services:
     env_file: .env
 
 volumes:
-  jrs_webapp:
-    driver: local
-  jrs_license:
   jrs_customization:
