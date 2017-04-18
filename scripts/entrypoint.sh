@@ -70,7 +70,6 @@ dbPassword=$DB_PASSWORD
 dbPort=$DB_PORT
 js.dbName=$DB_NAME
 _EOL_
-cat /usr/src/jasperreports-server/buildomatic/default_master.properties
 }
 
 run_jasperserver() {
