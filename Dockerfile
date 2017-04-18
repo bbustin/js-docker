@@ -11,7 +11,6 @@ RUN  \
     rm -rf /var/lib/apt/lists/* && \
     unzip /tmp/jasperserver.zip -d /usr/src/ && \
     mv /usr/src/jasperreports-server-* /usr/src/jasperreports-server && \
-    mkdir -p /usr/local/share/jasperreports-pro/license && \
     rm -rf /tmp/*
 
 # Extract phantomjs, move to /usr/local/share/phantomjs, link to /usr/local/bin.
@@ -75,6 +74,10 @@ ENV CATALINA_OPTS="${JAVA_OPTIONS:--Xmx2g -XX:+UseParNewGC \
 EXPOSE ${HTTP_PORT:-8080} ${HTTPS_PORT:-8443}
 
 COPY scripts/entrypoint.sh /
+
+# run setup now - starts up faster and allows modification of WEB-INF in child Dockerfiles
+RUN /entrypoint.sh setup
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Default action executed by entrypoint script.

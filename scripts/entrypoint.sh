@@ -223,6 +223,9 @@ case "$1" in
   init)
     init_database
     ;;
+  setup)
+    setup_jasperserver deploy-webapp-ce
+    ;;
   *)
     exec "$@"
 esac
