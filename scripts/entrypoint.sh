@@ -89,7 +89,7 @@ run_jasperserver() {
   fi
 
   create_default_master_properties
-  setup_jasperserver deploy-webapp-datasource-configs
+  setup_jasperserver deploy-webapp-datasource-configs deploy-jdbc-jar
     
   # Wait for PostgreSQL.
   retry_postgresql
@@ -102,9 +102,6 @@ run_jasperserver() {
       init-js-db-ce \
       import-minimal-ce
   fi
-
-  # Run deploy-jdbc-jar in the case that the tomcat container has been updated.
-  setup_jasperserver deploy-jdbc-jar
 
   # Set up phantomjs.
   config_phantomjs

@@ -29,10 +29,8 @@ running the Community Edition in Docker.
   1. [License](#license)
   1. [Logging](#logging)
 1. [Updating Tomcat](#updating-tomcat)
-1. [Customizing JasperReports Server at runtime](
-#customizing-jasperreports-server-at-runtime)
-  1. [Applying customizations](#applying-customizations)
-  1. [Applying customizations manually](
+1. [Customizing JasperReports Server](
+#customizing-jasperreports-server)
 #applying-customizations-manually)
   1. [Applying customizations with Docker Compose](
 #applying-customizations-with-docker-compose)
@@ -359,7 +357,7 @@ a newer base image, you have to re-create it. If you are using volumes
 for JasperReports Server, you can preserve web application data between
 upgrades.
 This can be useful if you have
-[customizations or configuration](#customizing-jasperreports-server-at-runtime)
+[customizations or configuration](#customizing-jasperreports-server)
 changes applied to
 the default web application:
 
@@ -381,80 +379,24 @@ container.
 as a base for the new container.
 - Database settings should be modified for your setup.
 
-# Customizing JasperReports Server at runtime
+# Customizing JasperReports Server
 
-Customizations can be added to JasperReports Server container at runtime
-via the `/usr/local/share/jasperreports/customization` directory in the
-container. All zip files in this directory are applied to
+Customizations can be added to the customization directory. All zip files in this directory are 
+copied to the image when its built and applied to
 `/usr/local/tomcat/webapps/jasperserver` in sorted order (natural sort).
 
-## Applying customizations
-
-For example:
-```console
-$ docker volume create --name some-jasperserver-customization
-$ sudo cp custom.zip \
-/var/lib/docker/volumes/some-jasperserver-customization/_data
-$ docker run --name some-jasperserver -v \
-some-jasperserver-customization:\
-/usr/local/share/jasperreports/customization \
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-ce:6.3.0
-```
-Where:
-
-- `some-jasperserver-customization` is the name of the customization
-data volume.
-- `custom.zip` is an archive containing customizations, for example:
+The zip is an archive containing customizations, for example:
 `WEB-INF/log4j.properties`. The archive will be unpacked as-is to the path
 `/usr/local/tomcat/webapps/jasperserver`
-- `/var/lib/docker/volumes/some-jasperserver-customization/_data` is an
-example path. Use `docker volume inspect`
-to get the local path to the volume for your system.
-- `some-jasperserver` is the name of the JasperReports Server
-container.
-- `jasperserver-ce:6.3.0` is an image name and version tag that is used
-as a base for the new container.
-- Database settings should be modified for your setup.
 
-See `scripts/entrypoint.sh` for implementation details and
-`docker-compose.yml` for a sample setup of a customization volume via Compose.
+Additionally, a new Docker image based on this one can be used. The
+steps to do that are:
 
-This directory can be also mounted as a [Data Volume](
-https://docs.docker.com/engine/tutorials/dockervolumes/).
-You must mount the directory on Windows and Macintosh. 
-See also 
-[Paths to data volumes on Mac and Windows](#paths-to-data-volumes-on-Mac-and-Windows).
-For additional information about paths on Mac, see
- [`docker volume inspect` returns incorrect paths on MacOS X](#-docker-volume-inspect-returns-incorrect-paths-on-macos-x).
-
-## Applying customizations with Docker Compose
-
-To use customizations with `docker-compose`, run `docker volume inspect` 
-to determine the path of the volume you want and add the license. To reference an 
-existing volume, modify the YAML file appropriately.
-
-
-## Applying customizations manually
-
-You can also apply customizations manually, either via the `docker cp` command
-or by modifying files in the [web application](#web-application) data volume.
-For example:
-```console
-$ docker cp log4j.properties some-jasperserver-ce:\
-/usr/local/tomcat/webapps/jasperserver/WEB-INF/
-$ docker restart some-jasperserver
-```
-Where:
-
-- `some-jasperserver` is the name of the JasperReports Server
-container.
+- create a new Dockerfile with the line `FROM bbustin/js-docker`
+- create a directory called customization
+- build the image '`docker build .`
 
 ## Restarting the container
-
-Note that independent of method, you need to restart the
-JasperReports Server container (`docker restart some-jasperserver`)
-if customizations are applied to a running container.
 
 Logging in
 

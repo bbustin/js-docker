@@ -70,6 +70,12 @@ ENV CATALINA_OPTS="${JAVA_OPTIONS:--Xmx2g -XX:+UseParNewGC \
 #        -v "/root/.keystore" \
 #    ${CATALINA_HOME}/conf/server.xml
 
+# Allow adding customizations without having to create a derivative Dockerfile
+COPY ./customization/*.zip /usr/local/share/jasperreports/customization/
+
+# Allow Derivative Dockerfiles to add customizations
+ONBUILD COPY ./customization/*.zip /usr/local/share/jasperreports/customization/
+
 # Expose ports. Note that you must do one of the following:
 # map them to local ports at container runtime via "-p 8080:8080 -p 8443:8443"
 # or use dynamic ports.
